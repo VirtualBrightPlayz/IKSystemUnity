@@ -26,6 +26,9 @@ public class IKSystem : MonoBehaviour
     public IKData rightFootData;
 
     public Transform head;
+    public Transform headTarget;
+    public Vector3 direction;
+    public Transform hips;
     public Transform leftHand;
     public Transform rightHand;
     public Transform leftFoot;
@@ -46,19 +49,36 @@ public class IKSystem : MonoBehaviour
             leftFootData.ik.enabled = footIk;
         if (rightFootData.ik)
             rightFootData.ik.enabled = footIk;
+        if (hips && head && headTarget)
+        {
+            hips.localPosition = hips.parent.InverseTransformPoint(headTarget.position) - direction;
+            head.position = headTarget.position;
+            head.rotation = headTarget.rotation;
+            // hips.position = head.position + direction;
+        }
     }
 
     public void Init()
     {
+        OnDisable();
         if (humanoid && humanoid.avatar && humanoid.avatar.isHuman)
         {
             head = humanoid.GetBoneTransform(HumanBodyBones.Head);
+            hips = humanoid.GetBoneTransform(HumanBodyBones.Hips);
             leftHand = humanoid.GetBoneTransform(HumanBodyBones.LeftHand);
             rightHand = humanoid.GetBoneTransform(HumanBodyBones.RightHand);
             leftFoot = humanoid.GetBoneTransform(HumanBodyBones.LeftFoot);
             rightFoot = humanoid.GetBoneTransform(HumanBodyBones.RightFoot);
-            float height = (humanoid.GetBoneTransform(HumanBodyBones.Head).position - humanoid.GetBoneTransform(HumanBodyBones.Hips).position).magnitude;
-            float scl = height;
+            direction = humanoid.GetBoneTransform(HumanBodyBones.Head).position - humanoid.GetBoneTransform(HumanBodyBones.Hips).position;
+            float scl = direction.magnitude;
+
+            // hips and head
+            {
+                headTarget = new GameObject("Head Target").transform;
+                headTarget.SetParent(transform);
+                headTarget.position = head.position;
+                headTarget.rotation = head.rotation;
+            }
 
             // left hand
             {
@@ -67,7 +87,7 @@ public class IKSystem : MonoBehaviour
                 leftHandData.target.position = leftHand.position;
                 leftHandData.target.rotation = leftHand.rotation;
                 leftHandData.pole = new GameObject("LeftHand Pole").transform;
-                leftHandData.pole.SetParent(transform);
+                leftHandData.pole.SetParent(head);
                 leftHandData.pole.position = head.position - transform.right * scl - transform.forward * scl + transform.up * 0.5f * scl;
 
                 FastIKFabric ik = leftHand.gameObject.AddComponent<FastIKFabric>();
@@ -88,7 +108,7 @@ public class IKSystem : MonoBehaviour
                 rightHandData.target.position = rightHand.position;
                 rightHandData.target.rotation = rightHand.rotation;
                 rightHandData.pole = new GameObject("RightHand Pole").transform;
-                rightHandData.pole.SetParent(transform);
+                rightHandData.pole.SetParent(head);
                 rightHandData.pole.position = head.position + transform.right * scl - transform.forward * scl + transform.up * 0.5f * scl;
 
                 FastIKFabric ik = rightHand.gameObject.AddComponent<FastIKFabric>();
@@ -110,7 +130,7 @@ public class IKSystem : MonoBehaviour
                 leftFootData.target.position = leftFoot.position;
                 leftFootData.target.rotation = leftFoot.rotation;
                 leftFootData.pole = new GameObject("LeftFoot Pole").transform;
-                leftFootData.pole.SetParent(transform);
+                leftFootData.pole.SetParent(hips);
                 leftFootData.pole.position = humanoid.GetBoneTransform(HumanBodyBones.LeftUpperLeg).position - transform.right * 0.25f * scl + transform.forward * 1.5f * scl + transform.up * 0.9f * scl;
 
                 FastIKFabric ik = leftFoot.gameObject.AddComponent<FastIKFabric>();
@@ -128,7 +148,7 @@ public class IKSystem : MonoBehaviour
                 rightFootData.target.position = rightFoot.position;
                 rightFootData.target.rotation = rightFoot.rotation;
                 rightFootData.pole = new GameObject("RightFoot Pole").transform;
-                rightFootData.pole.SetParent(transform);
+                rightFootData.pole.SetParent(hips);
                 rightFootData.pole.position = humanoid.GetBoneTransform(HumanBodyBones.RightUpperLeg).position + transform.right * 0.25f * scl + transform.forward * 1.5f * scl + transform.up * 0.9f * scl;
 
                 FastIKFabric ik = rightFoot.gameObject.AddComponent<FastIKFabric>();
