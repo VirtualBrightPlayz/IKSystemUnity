@@ -51,10 +51,9 @@ public class IKSystem : MonoBehaviour
             rightFootData.ik.enabled = footIk;
         if (hips && head && headTarget)
         {
-            hips.localPosition = hips.parent.InverseTransformPoint(headTarget.position) - direction;
-            head.position = headTarget.position;
-            head.rotation = headTarget.rotation;
-            // hips.position = head.position + direction;
+            hips.localPosition = hips.parent.InverseTransformPoint(headTarget.position) - hips.parent.InverseTransformVector(direction);
+            // head.position = headTarget.position;
+            // head.rotation = headTarget.rotation;
         }
     }
 
